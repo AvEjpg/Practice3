@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+    Заявка #{{ request.request_id }}
+    <span class="badge ms-2 
+        {% if request.request_status == 'Новая заявка' %}status-new
+        {% elif request.request_status == 'В процессе ремонта' %}status-in-progress
+        {% elif request.request_status == 'Готова к выдаче' %}status-gotova
+        {% elif request.request_status == 'Завершена' %}status-completed
+        {% elif request.request_status == 'Отменена' %}status-otmenena
+        {% else %}bg-secondary{% endif %}">
+        {{ request.request_status }}
+    </span>
+{% endblock %}
+
+{% block actions %}
+    <a href="{{ url_for('requests_list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Назад к списку
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Основная информация -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-info-circle me-2"></i>Информация о заявке
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-calendar text-primary me-2"></i>Даты</h6>
+                        <p><strong>Дата создания:</strong> {{ request.start_date }}</p>
+                        {% if request.completion_date %}
+                            <p><strong>Дата завершения:</strong> {{ request.completion_date }}</p>
+                        {% endif %}
+                        {% if request.deadline_date %}
+                            <p><strong>Срок выполнения:</strong> {{ request.deadline_date }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-tools text-primary me-2"></i>Оборудование</h6>
+                        <p><strong>Тип:</strong> {{ request.tech_type }}</p>
+                        <p><strong>Модель:</strong> {{ request.tech_model }}</p>
+                        {% if request.priority %}
+                            <p><strong>Приоритет:</strong> {{ request.priority }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <h6><i class="bi bi-exclamation-triangle text-primary me-2"></i>Описание проблемы</h6>
+                <div class="alert alert-light border p-3 rounded">
+                    {{ request.problem_description }}
+                </div>
+                
+                {% if request.repair_parts %}
+                <h6><i class="bi bi-box-seam text-primary me-2"></i>Использованные запчасти</h6>
+                <div class="alert alert-info border p-3 rounded">
+                    {{ request.repair_parts }}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-person text-primary me-2"></i>Ответственные</h6>
+                        <p><strong>Клиент ID:</strong> #{{ request.client_id }}</p>
+                        <p>
+                            <strong>Мастер:</strong> 
+                            {% if request.master_id %}
+                                #{{ request.master_id }}
+                            {% else %}
+                                <span class="text-muted">Не назначен</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Комментарии -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="bi bi-chat-dots me-2"></i>Комментарии специалистов
+                <span class="badge bg-primary rounded-pill ms-2">{{ comments|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong class="text-primary">
+                                    <i class="bi bi-person-circle me-1"></i>Мастер #{{ comment.master_id }}
+                                </strong>
+                                <small class="text-muted ms-2">{{ comment.created_date or 'Дата не указана' }}</small>
+                            </div>
+                        </div>
+                        <p class="mb-0 ps-3 border-start border-3 border-primary">{{ comment.message }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-text display-4 text-muted mb-3"></i>
+                        <p class="text-muted">Комментариев пока нет</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Панель действий -->
+    <div class="col-md-4">
+        <!-- Редактирование статуса -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-pencil me-2"></i>Изменение статуса
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('edit_request', request_id=request.request_id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Статус заявки</label>
+                        <select name="request_status" class="form-select" required>
+                            <option value="Новая заявка" {% if request.request_status == 'Новая заявка' %}selected{% endif %}>Новая заявка</option>
+                            <option value="В процессе ремонта" {% if request.request_status == 'В процессе ремонта' %}selected{% endif %}>В процессе ремонта</option>
+                            <option value="Готова к выдаче" {% if request.request_status == 'Готова к выдаче' %}selected{% endif %}>Готова к выдаче</option>
+                            <option value="Завершена" {% if request.request_status == 'Завершена' %}selected{% endif %}>Завершена</option>
+                            <option value="Отменена" {% if request.request_status == 'Отменена' %}selected{% endif %}>Отменена</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Дата завершения</label>
+                        <input type="date" name="completion_date" class="form-control" 
+                               value="{{ request.completion_date or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Использованные запчасти</label>
+                        <textarea name="repair_parts" class="form-control" rows="3">{{ request.repair_parts or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">ID мастера</label>
+                        <input type="number" name="master_id" class="form-control" 
+                               value="{{ request.master_id or '' }}">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-save me-1"></i> Сохранить изменения
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Назначение мастера (для менеджеров) -->
+        {% if role in ['Менеджер', 'Менеджер по качеству'] %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-person-plus me-2"></i>Назначить мастера
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('assign_master', request_id=request.request_id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">ID мастера</label>
+                        <input type="number" name="master_id" class="form-control" required 
+                               placeholder="Введите ID мастера">
+                    </div>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="bi bi-check-circle me-1"></i> Назначить
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Продление срока (для менеджеров) -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <i class="bi bi-calendar-plus me-2"></i>Продлить срок
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('extend_deadline', request_id=request.request_id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Новая дата завершения</label>
+                        <input type="date" name="new_deadline_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Причина продления</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="Укажите причину..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-clock-history me-1"></i> Продлить срок
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- QR код обратной связи -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-qr-code me-2"></i>Обратная связь
+            </div>
+            <div class="card-body text-center">
+                <p>Оцените качество обслуживания:</p>
+                <img src="{{ url_for('qr_feedback') }}" alt="QR Code" class="img-fluid rounded" style="max-width: 150px;">
+                <p class="mt-2 text-muted">
+                    <small>Отсканируйте QR-код для перехода к опросу</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

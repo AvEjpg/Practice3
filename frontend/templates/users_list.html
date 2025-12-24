@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}Управление пользователями{% endblock %}
+
+{% block actions %}
+    {% if role == 'Менеджер' %}
+    <a href="{{ url_for('create_user') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i> Новый пользователь
+    </a>
+    {% endif %}
+    <a href="{{ url_for('users_list') }}" class="btn btn-outline-light">
+        <i class="bi bi-arrow-clockwise me-1"></i> Обновить
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people me-2"></i> Пользователи системы</span>
+                <div>
+                    <span class="badge bg-primary me-2">{{ users|length }} пользователей</span>
+                    {% if role == 'Менеджер' %}
+                    <span class="badge bg-success">Режим менеджера</span>
+                    {% elif role == 'Менеджер по качеству' %}
+                    <span class="badge bg-info">Режим менеджера по качеству</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="80">ID</th>
+                                    <th>ФИО</th>
+                                    <th>Телефон</th>
+                                    <th>Логин</th>
+                                    <th width="150">Роль</th>
+                                    <th width="120">Статус</th>
+                                    <th width="150">Дата регистрации</th>
+                                    <th width="140" class="text-center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td><strong>#{{ user.user_id }}</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2" style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                                {{ user.fio[0] if user.fio else '?' }}
+                                            </div>
+                                            {{ user.fio }}
+                                        </div>
+                                    </td>
+                                    <td>{{ user.phone }}</td>
+                                    <td>
+                                        <code>{{ user.login }}</code>
+                                    </td>
+                                    <td>
+                                        {% if user.user_type == 'Менеджер' %}
+                                            <span class="badge bg-primary">{{ user.user_type }}</span>
+                                        {% elif user.user_type == 'Менеджер по качеству' %}
+                                            <span class="badge bg-info">{{ user.user_type }}</span>
+                                        {% elif user.user_type == 'Специалист' %}
+                                            <span class="badge bg-warning">{{ user.user_type }}</span>
+                                        {% elif user.user_type == 'Оператор' %}
+                                            <span class="badge bg-success">{{ user.user_type }}</span>
+                                        {% elif user.user_type == 'Заказчик' %}
+                                            <span class="badge bg-secondary">{{ user.user_type }}</span>
+                                        {% else %}
+                                            <span class="badge bg-dark">{{ user.user_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">Активен</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Неактивен</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.created_at %}
+                                            <small class="text-muted">{{ user.created_at[:10] }}</small>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- Кнопка редактирования (доступна менеджеру и менеджеру по качеству) -->
+                                            {% if role in ['Менеджер', 'Менеджер по качесту', 'Менеджер по качеству'] %}
+                                            <a href="{{ url_for('edit_user', user_id=user.user_id) }}" 
+                                               class="btn btn-outline-warning" title="Редактировать"
+                                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% endif %}
+                                            
+                                            <!-- Кнопка удаления (только для менеджера, нельзя удалить себя) -->
+                                            {% if role == 'Менеджер' and user.user_id != session.get('user_id')|int %}
+                                            <form method="post" action="{{ url_for('delete_user', user_id=user.user_id) }}"
+                                                  onsubmit="return confirmDelete('Удалить пользователя {{ user.fio }}?');"
+                                                  class="d-inline">
+                                                <input type="hidden" name="confirm" value="yes">
+                                                <button type="submit" class="btn btn-outline-danger" 
+                                                        title="Удалить"
+                                                        data-bs-toggle="tooltip" data-bs-placement="top">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% elif role == 'Менеджер' and user.user_id == session.get('user_id')|int %}
+                                            <button class="btn btn-outline-secondary disabled" title="Нельзя удалить себя">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Пользователи не найдены</h5>
+                        {% if role == 'Менеджер' %}
+                        <a href="{{ url_for('create_user') }}" class="btn btn-primary mt-3">
+                            <i class="bi bi-person-plus me-2"></i> Добавить первого пользователя
+                        </a>
+                        {% else %}
+                        <p class="text-muted">Только менеджер может создавать новых пользователей</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if users %}
+            <div class="card-footer bg-light">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Для редактирования пользователя нажмите на иконку <i class="bi bi-pencil"></i>
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            {% if role == 'Менеджер' %}
+                            <i class="bi bi-shield-check me-1"></i> Вы можете создавать, редактировать и удалять пользователей
+                            {% elif role == 'Менеджер по качеству' %}
+                            <i class="bi bi-shield me-1"></i> Вы можете только редактировать пользователей
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Статистика по ролям -->
+{% if users %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-pie-chart me-2"></i> Статистика по ролям
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% set roles = {} %}
+                    {% for user in users %}
+                        {% set _ = roles.update({user.user_type: roles.get(user.user_type, 0) + 1}) %}
+                    {% endfor %}
+                    
+                    {% for role_name, count in roles.items() %}
+                    <div class="col-md-2 col-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="mb-1">{{ count }}</h3>
+                                <p class="mb-0 text-muted">{{ role_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Информация о правах доступа -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-shield me-2"></i> Права доступа по ролям
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="bi bi-person-badge text-primary me-2"></i>Менеджер</h6>
+                        <ul class="small">
+                            <li>Создание пользователей</li>
+                            <li>Редактирование пользователей</li>
+                            <li>Удаление пользователей</li>
+                            <li>Управление заявками</li>
+                            <li>Назначение специалистов</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="bi bi-person-check text-info me-2"></i>Менеджер по качеству</h6>
+                        <ul class="small">
+                            <li>Редактирование пользователей</li>
+                            <li>Назначение специалистов</li>
+                            <li>Продление сроков выполнения</li>
+                            <li>Контроль качества работ</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="bi bi-person text-secondary me-2"></i>Другие роли</h6>
+                        <ul class="small">
+                            <li>Заказчик: только свои заявки</li>
+                            <li>Специалист: работа с назначенными заявками</li>
+                            <li>Оператор: регистрация заявок</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(message) {
+    return confirm(message || 'Вы уверены, что хотите удалить этого пользователя?');
+}
+</script>
+{% endblock %}

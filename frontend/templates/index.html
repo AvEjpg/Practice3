@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}Добро пожаловать в систему учета заявок{% endblock %}
+
+{% block actions %}
+    {% if session.get('token') %}
+        {% if session.get('role') == 'Заказчик' %}
+            <a href="{{ url_for('new_my_request') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Новая заявка
+            </a>
+        {% else %}
+            <a href="{{ url_for('new_request') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Создать заявку
+            </a>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-info-circle"></i> О системе
+            </div>
+            <div class="card-body">
+                <h5>Система учета заявок на ремонт бытовой техники</h5>
+                <p>Данная система предназначена для автоматизации процесса учета заявок на ремонт бытовой техники.</p>
+                
+                {% if not session.get('token') %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Для работы с системой необходимо войти под своей учетной записью.
+                    </div>
+                    <a href="{{ url_for('login') }}" class="btn btn-success">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти в систему
+                    </a>
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        Вы вошли как: <strong>{{ session.get('role') }}</strong>
+                    </div>
+                    
+                    <h6>Доступные возможности:</h6>
+                    <ul>
+                        {% if session.get('role') == 'Заказчик' %}
+                            <li>Создание заявок на ремонт</li>
+                            <li>Просмотр статуса своих заявок</li>
+                            <li>Отслеживание выполнения работ</li>
+                        {% elif session.get('role') == 'Оператор' %}
+                            <li>Регистрация новых заявок</li>
+                            <li>Просмотр всех заявок</li>
+                            <li>Изменение статусов заявок</li>
+                        {% elif session.get('role') == 'Специалист' %}
+                            <li>Просмотр назначенных заявок</li>
+                            <li>Добавление комментариев</li>
+                            <li>Указание использованных запчастей</li>
+                        {% elif session.get('role') == 'Менеджер' %}
+                            <li>Управление заявками</li>
+                            <li>Управление пользователями</li>
+                            <li>Назначение специалистов</li>
+                        {% elif session.get('role') == 'Менеджер по качеству' %}
+                            <li>Контроль качества работ</li>
+                            <li>Продление сроков выполнения</li>
+                            <li>Назначение специалистов</li>
+                        {% endif %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-lightbulb"></i> Быстрые действия
+            </div>
+            <div class="card-body">
+                {% if session.get('token') %}
+                    <div class="d-grid gap-2">
+                        {% if session.get('role') == 'Заказчик' %}
+                            <a href="{{ url_for('my_requests') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-list-check"></i> Мои заявки
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('requests_list') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-list-check"></i> Все заявки
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('statistics') }}" class="btn btn-outline-info">
+                            <i class="bi bi-bar-chart"></i> Статистика
+                        </a>
+                        
+                        <a href="{{ url_for('qr_feedback') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-qr-code"></i> QR обратной связи
+                        </a>
+                    </div>
+                {% else %}
+                    <p>Войдите в систему для доступа к функциям</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-telephone"></i> Контакты
+            </div>
+            <div class="card-body">
+                <p><strong>Сервисный центр:</strong></p>
+                <p><i class="bi bi-telephone"></i> 8 (800) 123-45-67</p>
+                <p><i class="bi bi-clock"></i> Пн-Пт: 9:00-18:00</p>
+                <p><i class="bi bi-envelope"></i> service@example.com</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

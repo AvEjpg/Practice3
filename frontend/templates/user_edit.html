@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}Редактирование пользователя{% endblock %}
+
+{% block actions %}
+    <a href="{{ url_for('users_list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Назад к списку
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-person-gear me-2"></i> Редактирование пользователя #{{ user.user_id }}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">ФИО <span class="text-danger">*</span></label>
+                        <input type="text" name="fio" class="form-control" required
+                               value="{{ user.fio }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Телефон <span class="text-danger">*</span></label>
+                        <input type="tel" name="phone" class="form-control" required
+                               value="{{ user.phone }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Логин</label>
+                        <input type="text" class="form-control" value="{{ user.login }}" readonly>
+                        <small class="text-muted">Логин нельзя изменить</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль (оставьте пустым, если не меняется)</label>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Введите новый пароль">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Роль пользователя <span class="text-danger">*</span></label>
+                        <select name="user_type" class="form-select" required>
+                            <option value="Заказчик" {% if user.user_type == 'Заказчик' %}selected{% endif %}>Заказчик</option>
+                            <option value="Оператор" {% if user.user_type == 'Оператор' %}selected{% endif %}>Оператор</option>
+                            <option value="Специалист" {% if user.user_type == 'Специалист' %}selected{% endif %}>Специалист</option>
+                            <option value="Менеджер" {% if user.user_type == 'Менеджер' %}selected{% endif %}>Менеджер</option>
+                            <option value="Менеджер по качеству" {% if user.user_type == 'Менеджер по качеству' %}selected{% endif %}>Менеджер по качеству</option>
+                        </select>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Менеджер по качеству может изменять роли, но не может создавать новых пользователей.
+                        Только Менеджер может создавать и удалять пользователей.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save me-2"></i> Сохранить изменения
+                        </button>
+                        <a href="{{ url_for('users_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

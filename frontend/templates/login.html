@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Вход в систему
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="login" class="form-label">Логин</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control" id="login" name="login" required 
+                                   placeholder="Введите ваш логин">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Пароль</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-key"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   placeholder="Введите ваш пароль">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="text-center">
+                    <h6 class="mb-3">Тестовые доступы:</h6>
+                    
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="border rounded p-2">
+                                <small>
+                                    <strong>Менеджер</strong><br>
+                                    <code>kasoo / root</code>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded p-2">
+                                <small>
+                                    <strong>Мастер</strong><br>
+                                    <code>test1 / test1</code>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded p-2">
+                                <small>
+                                    <strong>Менеджер по качеству</strong><br>
+                                    <code>quality_manager / quality123</code>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded p-2">
+                                <small>
+                                    <strong>Заказчик</strong><br>
+                                    <code>login2 / pass2</code>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <small class="text-muted">
+                    Система учета заявок на ремонт бытовой техники<br>
+                    ООО "БытСервис" © 2025
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

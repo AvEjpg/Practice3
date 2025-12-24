@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}Мои заявки{% endblock %}
+
+{% block actions %}
+    <a href="{{ url_for('new_my_request') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Новая заявка
+    </a>
+    <a href="{{ url_for('my_requests') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-clockwise me-1"></i> Обновить
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Фильтр заявок -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <i class="bi bi-filter me-2"></i> Фильтр заявок
+    </div>
+    <div class="card-body">
+        <form method="get" action="{{ url_for('my_requests') }}" class="row g-3">
+            <div class="col-md-4">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Все статусы</option>
+                    <option value="Новая заявка" {% if request.args.get('status') == 'Новая заявка' %}selected{% endif %}>Новые</option>
+                    <option value="В процессе ремонта" {% if request.args.get('status') == 'В процессе ремонта' %}selected{% endif %}>В работе</option>
+                    <option value="Готова к выдаче" {% if request.args.get('status') == 'Готова к выдаче' %}selected{% endif %}>Готовы к выдаче</option>
+                    <option value="Завершена" {% if request.args.get('status') == 'Завершена' %}selected{% endif %}>Завершённые</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица заявок -->
+<div class="card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-task me-2"></i> Мои заявки</span>
+        <span class="badge bg-primary">{{ requests|length }} заявок</span>
+    </div>
+    
+    <div class="card-body p-0">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="80">№</th>
+                            <th>Дата создания</th>
+                            <th>Оборудование</th>
+                            <th>Проблема</th>
+                            <th width="150">Статус</th>
+                            <th width="120">Дата завершения</th>
+                            <th width="100">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td><strong>#{{ req.request_id }}</strong></td>
+                            <td>{{ req.start_date }}</td>
+                            <td>
+                                <div><small class="text-muted">{{ req.tech_type }}</small></div>
+                                <div>{{ req.tech_model|truncate(25) }}</div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" 
+                                     title="{{ req.problem_description }}">
+                                    {{ req.problem_description|truncate(40) }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if req.request_status == 'Новая заявка' %}
+                                    <span class="badge status-new">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'В процессе ремонта' %}
+                                    <span class="badge status-in-progress">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Готова к выдаче' %}
+                                    <span class="badge status-gotova">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Завершена' %}
+                                    <span class="badge status-completed">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Отменена' %}
+                                    <span class="badge status-otmenena">{{ req.request_status }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.request_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.completion_date or '—' }}</td>
+                            <td>
+                                <a href="{{ url_for('my_request_detail', request_id=req.request_id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Просмотреть">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                <h5 class="text-muted">У вас пока нет заявок</h5>
+                <p class="text-muted mb-4">Создайте первую заявку на ремонт оборудования</p>
+                <a href="{{ url_for('new_my_request') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i> Создать заявку
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if requests %}
+    <div class="card-footer bg-light">
+        <small class="text-muted">
+            Для просмотра деталей нажмите на иконку <i class="bi bi-eye"></i>
+        </small>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Информация для клиента -->
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-info-circle me-2"></i> Информация для заказчика
+    </div>
+    <div class="card-body">
+        <h5>Как работает система:</h5>
+        <ul>
+            <li>Создайте заявку на ремонт оборудования</li>
+            <li>Отслеживайте статус заявки в этой таблице</li>
+            <li>Специалисты будут оставлять комментарии по ходу работы</li>
+            <li>При необходимости с вами свяжутся для уточнения деталей</li>
+            <li>После завершения ремонта вы получите уведомление</li>
+            <li>Вы можете оставить отзыв через QR-код обратной связи</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

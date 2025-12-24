@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+    {% if search_params %}
+        Результаты поиска заявок
+    {% else %}
+        Список заявок
+    {% endif %}
+{% endblock %}
+
+{% block actions %}
+    {% if role in ['Оператор', 'Специалист', 'Менеджер'] %}
+        <a href="{{ url_for('new_request') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Новая заявка
+        </a>
+    {% endif %}
+    <a href="{{ url_for('requests_list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-clockwise me-1"></i> Обновить
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Форма поиска -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <i class="bi bi-search me-2"></i>Поиск заявок
+    </div>
+    <div class="card-body">
+        <form method="get" action="{{ url_for('search_requests') }}" class="row g-3">
+            <div class="col-md-3">
+                <input type="number" name="number" class="form-control" placeholder="№ заявки" 
+                       value="{{ search_params.number if search_params and search_params.number }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    <option value="Новая заявка" {% if search_params and search_params.status == 'Новая заявка' %}selected{% endif %}>Новая</option>
+                    <option value="В процессе ремонта" {% if search_params and search_params.status == 'В процессе ремонта' %}selected{% endif %}>В работе</option>
+                    <option value="Готова к выдаче" {% if search_params and search_params.status == 'Готова к выдаче' %}selected{% endif %}>Готова</option>
+                    <option value="Завершена" {% if search_params and search_params.status == 'Завершена' %}selected{% endif %}>Завершена</option>
+                    <option value="Отменена" {% if search_params and search_params.status == 'Отменена' %}selected{% endif %}>Отменена</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="tech_type" class="form-control" placeholder="Тип оборудования"
+                       value="{{ search_params.tech_type if search_params and search_params.tech_type }}">
+            </div>
+            <div class="col-md-3">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Найти
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица заявок -->
+<div class="card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-list-task me-2"></i>
+            {% if search_params %}
+                Найдено заявок: {{ requests|length }}
+            {% else %}
+                Все заявки: {{ requests|length }}
+            {% endif %}
+        </span>
+        {% if search_params %}
+            <a href="{{ url_for('requests_list') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i> Очистить поиск
+            </a>
+        {% endif %}
+    </div>
+    
+    <div class="card-body p-0">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="80">№</th>
+                            <th>Дата</th>
+                            <th>Оборудование</th>
+                            <th>Проблема</th>
+                            <th width="150">Статус</th>
+                            <th width="100">Клиент</th>
+                            <th width="120">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td>
+                                <strong>#{{ req.request_id }}</strong>
+                            </td>
+                            <td>
+                                <small class="text-muted d-block">{{ req.start_date }}</small>
+                                {% if req.completion_date %}
+                                    <small class="text-success">Завершена: {{ req.completion_date }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div><small class="text-muted">{{ req.tech_type }}</small></div>
+                                <div>{{ req.tech_model|truncate(20) }}</div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 250px;" 
+                                     title="{{ req.problem_description }}">
+                                    {{ req.problem_description|truncate(50) }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if req.request_status == 'Новая заявка' %}
+                                    <span class="badge status-new">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'В процессе ремонта' %}
+                                    <span class="badge status-in-progress">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Готова к выдаче' %}
+                                    <span class="badge status-gotova">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Завершена' %}
+                                    <span class="badge status-completed">{{ req.request_status }}</span>
+                                {% elif req.request_status == 'Отменена' %}
+                                    <span class="badge status-otmenena">{{ req.request_status }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.request_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">#{{ req.client_id }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('request_detail', request_id=req.request_id) }}" 
+                                       class="btn btn-outline-primary" title="Просмотр">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if role in ['Оператор', 'Специалист', 'Менеджер', 'Менеджер по качеству'] %}
+                                    <a href="{{ url_for('request_detail', request_id=req.request_id) }}" 
+                                       class="btn btn-outline-warning" title="Редактировать">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                <h5 class="text-muted">
+                    {% if search_params %}
+                        Заявок по вашему запросу не найдено
+                    {% else %}
+                        Заявок пока нет
+                    {% endif %}
+                </h5>
+                {% if not search_params and role in ['Оператор', 'Специалист', 'Менеджер'] %}
+                <a href="{{ url_for('new_request') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-2"></i> Создать первую заявку
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if requests %}
+    <div class="card-footer bg-light">
+        <small class="text-muted">
+            Для просмотра деталей нажмите на иконку <i class="bi bi-eye"></i>
+        </small>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

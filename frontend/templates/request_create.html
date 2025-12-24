@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}Создание новой заявки{% endblock %}
+
+{% block actions %}
+    <a href="{{ url_for('requests_list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Назад к списку
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-plus-circle me-2"></i>Новая заявка на ремонт
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Дата начала <span class="text-danger">*</span></label>
+                            <input type="date" name="start_date" class="form-control" required 
+                                   value="{{ today }}">
+                            <small class="text-muted">Устанавливается автоматически</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тип оборудования <span class="text-danger">*</span></label>
+                            <select name="tech_type" class="form-select" required>
+                                <option value="">Выберите тип...</option>
+                                <option value="Холодильник">Холодильник</option>
+                                <option value="Стиральная машина">Стиральная машина</option>
+                                <option value="Телевизор">Телевизор</option>
+                                <option value="Микроволновая печь">Микроволновая печь</option>
+                                <option value="Пылесос">Пылесос</option>
+                                <option value="Фен">Фен</option>
+                                <option value="Тостер">Тостер</option>
+                                <option value="Мультиварка">Мультиварка</option>
+                                <option value="Другое">Другое оборудование</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Модель устройства <span class="text-danger">*</span></label>
+                        <input type="text" name="tech_model" class="form-control" required 
+                               placeholder="Например: Samsung RB5000 или Indesit DS 316 W">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Описание проблемы <span class="text-danger">*</span></label>
+                        <textarea name="problem_description" class="form-control" rows="4" required
+                                  placeholder="Опишите подробно проблему с оборудованием..."
+                                  minlength="10" maxlength="1000"></textarea>
+                        <small class="text-muted">Минимум 10 символов, максимум 1000</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">ID клиента <span class="text-danger">*</span></label>
+                        <input type="number" name="client_id" class="form-control" required
+                               placeholder="Введите ID клиента">
+                        <small class="text-muted">Уникальный номер клиента в системе</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Статус заявки будет автоматически установлен как "Новая". 
+                        Мастер может быть назначен позже менеджером.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle me-2"></i> Создать заявку
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i> Очистить форму
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-lightbulb me-2"></i>Советы по заполнению
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Указывайте точную модель оборудования (обычно указана на шильдике)</li>
+                    <li>Описывайте симптомы проблемы максимально подробно</li>
+                    <li>Указывайте, когда началась проблема и при каких условиях проявляется</li>
+                    <li>Проверьте правильность ID клиента</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
